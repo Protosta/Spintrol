@@ -1,0 +1,23 @@
+/*###ICF### Section handled by ICF editor, don't touch! ****/
+/*-Editor annotation file-*/
+/* IcfEditorFile="$TOOLKIT_DIR$\config\ide\IcfEditor\cortex_v1_0.xml" */
+/*-Specials-*/
+
+/*-Memory Regions-*/
+define symbol __ICFEDIT_region_ROM_start__ = 0x1000F000;
+define symbol __ICFEDIT_region_ROM_end__   = 0x1000FFFF;
+define symbol __ICFEDIT_region_RAM_start__ = 0x1FFFF000;
+define symbol __ICFEDIT_region_RAM_end__   = 0x1FFFFFFF;
+
+
+/*-Sizes-*/
+/**** End of ICF editor section. ###ICF###*/
+
+
+define memory mem with size = 4G;
+do not initialize {section .bss }; 
+define region ROM_region      = mem:[from __ICFEDIT_region_ROM_start__   to __ICFEDIT_region_ROM_end__];
+define region RAM_region      = mem:[from __ICFEDIT_region_RAM_start__   to __ICFEDIT_region_RAM_end__];
+
+place in ROM_region   { readonly };
+place in RAM_region   { readwrite};

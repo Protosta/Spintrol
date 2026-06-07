@@ -1,0 +1,185 @@
+/******************************************************************************
+ * @file     LINDiagnostic.ldf
+ * @brief    LIN Description file created using Vector's LIN File Editor
+ * @version  VXX.XX.XX
+ * @date     XX-XXX-XXXX
+ *
+ * @note
+ * Copyright (C) 2022 Spintrol Electronic Technology (Shanghai) Co., Ltd.. All rights reserved.
+ *
+ * @attention
+ * THIS SOFTWARE JUST PROVIDES CUSTOMERS WITH CODING INFORMATION REGARDING
+ * THEIR PRODUCTS, WHICH AIMS AT SAVING TIME FOR THEM. SPINTROL SHALL NOT BE
+ * LIABLE FOR THE USE OF THE SOFTWARE. SPINTROL DOES NOT GUARANTEE THE
+ * CORRECTNESS OF THIS SOFTWARE AND RESERVES THE RIGHT TO MODIFY THE SOFTWARE
+ * WITHOUT NOTIFICATION.
+ *
+ ******************************************************************************/
+// Global Definitions
+LIN_description_file;
+LIN_protocol_version = "2.1";
+LIN_language_version = "2.1";
+LIN_speed = 19.2 kbps; // baudrate (1.0-20.0)
+// End of Global Definitions
+
+Nodes // Nodes Definition
+{
+    Master:
+        LINMaster,  // master node name
+        1 ms, // time base (real)
+        0.1 ms;    // jitter (real)
+            
+    Slaves:
+        FrontLeftDoor; // slave node names
+
+} // End of Nodes Definition
+
+Signals // Signals Definition
+{
+    FrontLeftDoorSignal:  4,  0,  FrontLeftDoor,  LINMaster; //signal name, signal size(bit), signal initial data, originator, recipient
+    FrontLeftDoorErrSig:  1,  0,  FrontLeftDoor,  LINMaster;
+    //Master to slave signal
+    MasterToFront:        8,  0,  LINMaster,      FrontLeftDoor;
+    //Slave to master signal
+    FrontToMasterSignal:        4, 0, FrontLeftDoor, LINMaster;
+    FrontToMasterEventSignal:        4, 0, FrontLeftDoor, LINMaster;
+} // End of Signals Definition
+
+Diagnostic_signals // Diagnostic Signals Definition (optional)
+{
+    // MasterReq Reserved Signals    
+    MasterReqB0: 8, 0; // signal name: signal size, signal offset;
+    MasterReqB1: 8, 0;
+    MasterReqB2: 8, 0;
+    MasterReqB3: 8, 0;
+    MasterReqB4: 8, 0;
+    MasterReqB5: 8, 0;
+    MasterReqB6: 8, 0;
+    MasterReqB7: 8, 0;
+        // End of MasterReq Reserved Signals
+
+    // SlaveResp Reserved Signals
+    SlaveRespB0: 8, 0; // signal name: signal size, signal offset;
+    SlaveRespB1: 8, 0;
+    SlaveRespB2: 8, 0;
+    SlaveRespB3: 8, 0;
+    SlaveRespB4: 8, 0;
+    SlaveRespB5: 8, 0;
+    SlaveRespB6: 8, 0;
+    SlaveRespB7: 8, 0; 
+    // End of SlaveResp Reserved Signals
+
+} // End of Diagnostic Signals Definition
+
+Frames // Unconditional Frames Definition
+{
+    FrontLeftDoorMessage: 1, FrontLeftDoor, 1 //frame name, frame ID(decimal), originator, frame length(byte)
+    {
+        FrontLeftDoorSignal, 0; // signal name, signal offset in frame(bit)
+    }
+  //error frame will use eventriger frame
+      FrontLeftDoorErrEvent: 3, FrontLeftDoor, 1
+      {
+        FrontLeftDoorErrSig,  0;
+      }
+  
+      MasterToFrontControl: 6, LINMaster, 2{
+        MasterToFront, 0;
+      }
+
+      FrontToMasterMessage: 8, FrontLeftDoor, 1{
+        FrontToMasterSignal, 0;
+      }
+      FrontToMasterEventMessage: 4, FrontLeftDoor, 2{
+        FrontToMasterEventSignal, 8; // signal name, signal offset in frame(bit): because this frame is relevant to event triggered frame, offset must >= 8
+      }
+} // End of Unconditional Frames Definition
+
+Event_triggered_frames {
+      ETF_MotorStates: ETFCollisionResolving, 11, FrontToMasterEventMessage; // frame name, conflict resolution schedule table, frame ID(decimal), relevant unconditional frame
+}
+
+Diagnostic_frames // Diagnostic Frame Definition (optional)
+{
+    MasterReq: 60 // reserved frame name and frame identifier
+    {
+        MasterReqB0, 0; // diagnostic signal name, signal offset
+        MasterReqB1, 8;
+        MasterReqB2, 16;
+        MasterReqB3, 24;
+        MasterReqB4, 32;
+        MasterReqB5, 40;
+        MasterReqB6, 48;
+        MasterReqB7, 56;
+    }
+
+    SlaveResp: 61 // reserved frame name and frame identifier
+    {
+        SlaveRespB0, 0; // diagnostic signal name, signal offset
+        SlaveRespB1, 8;
+        SlaveRespB2, 16;
+        SlaveRespB3, 24;
+        SlaveRespB4, 32;
+        SlaveRespB5, 40;
+        SlaveRespB6, 48;
+        SlaveRespB7, 56;
+    }
+} // End of Diagnostic Frame Definition
+
+Node_attributes // Node Attributes Definition
+{    
+  FrontLeftDoor // node name
+    {
+        LIN_protocol = "2.1";   // LIN version, only support 2.1
+        configured_NAD = 0x11;  // initial NAD of node (1-126)
+        initial_NAD = 0x11 ;
+        product_id = 
+            0x0021,               // supplier_id (0-0x7FFE)  <--> 0-0xFFDE
+            1,                    // function_id (0-0xFFFE)
+            0;                    // variant (0-0xFF)
+        response_error = FrontLeftDoorErrSig;  // name of 1 bit error signal, now this signal is in FrontLeftDoorErrEvent
+        P2_min = 50 ms;         // Time between reception of the last frame of a diagnostic request on the LIN bus and the slave node being able to provide data for a response .
+        ST_min = 5 ms;          // STm in is the minimum time the master node shall wait between the transmissions of a FF and its first CF, as well as two CF.
+        N_As_timeout = 1000 ms;
+        N_Cr_timeout = 1000 ms;  // Set the transport layer timeout parameter
+        configurable_frames 
+        {
+            // list of configurable frames
+            FrontLeftDoorMessage; // frame name with message id (0-0xFFFE), all unconditional frames and event triggered frames
+            MasterToFrontControl;
+            FrontLeftDoorErrEvent;
+            FrontToMasterMessage;
+            FrontToMasterEventMessage;
+            ETF_MotorStates;
+        }
+    } // End of Node Attribut
+} // End of Node Attributes Definition
+
+Schedule_tables {
+  MasterReq_Table {
+    MasterReq delay 20 ms ;
+  }
+  SlaveResp_Table {
+    SlaveResp delay 20 ms ;
+  }
+  Diagnostic {
+    MasterReq delay 20 ms ;
+    SlaveResp delay 20 ms ;
+  }
+  ETFCollisionResolving {
+    FrontToMasterEventMessage delay 50 ms ;
+  }
+  InitTable {
+    AssignNAD { FrontLeftDoor } delay 20 ms ; // set NAD of the node
+    SlaveResp delay 20 ms ;
+    AssignFrameIdRange { FrontLeftDoor, 0 } delay 20 ms ; // set the ID from the first frame
+  }
+  NormalTable {
+    FrontLeftDoorMessage  delay 10 ms;
+    FrontToMasterMessage  delay 10 ms;
+    ETF_MotorStates       delay 20 ms;
+    MasterToFrontControl  delay 10 ms;
+  }
+}
+
+

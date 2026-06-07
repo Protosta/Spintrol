@@ -1,0 +1,44 @@
+execUserPreload()
+{
+  __var Reg;
+
+  __message"----- Running bootloader before verify -----";
+  
+  // Enable Flash register write access
+  __writeMemory32(0x1ACCE551, 0x40001B60, "Memory");
+
+  // Enable XIP
+  __writeMemory32(0x00000040, 0x40001B00, "Memory");
+  
+  // Read application entry address
+  Reg = __readMemory32(0x10000004, "Memory");
+  
+  // Disable XIP
+  __writeMemory32(0x00000000, 0x40001B00, "Memory");
+  
+  // Hardware reset and run to the entry address
+  __hwResetRunToBp(8, Reg, 5000);
+}
+
+
+execUserReset()
+{
+  __var Reg;
+
+  __message"----- Running bootloader before execute application -----";
+  
+  // Enable Flash register write access
+  __writeMemory32(0x1ACCE551, 0x40001B60, "Memory");
+
+  // Enable XIP
+  __writeMemory32(0x00000040, 0x40001B00, "Memory");
+  
+  // Read application entry address
+  Reg = __readMemory32(0x10000004, "Memory");
+  
+  // Disable XIP
+  __writeMemory32(0x00000000, 0x40001B00, "Memory");
+  
+  // Hardware reset and run to the entry address
+  __hwResetRunToBp(8, Reg, 5000);
+}

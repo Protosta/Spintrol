@@ -1,0 +1,1 @@
+将该目录下的文件复制到IAR安装目录下的arm\config\flashloader\SPINTROL文件夹下，如果没有SPINTROL文件夹，用户需要手工新建一个。
